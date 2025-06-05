@@ -768,11 +768,12 @@ export default function HomePage() {
   };
 
   const handleFillRemainingWithEUP = () => {
-    // We want to keep current DINs and fill the rest with EUPs.
+    // Keep current DINs and fill the rest with EUPs using the best pattern.
+
     // The calculateAndSetState in useEffect will handle the detailed simulation.
-    // We just need to set the intention for eupQuantity to be "max"
-    // and keep dinQuantity as is.
-    // The primary calculation in calculateAndSetState will use MAX_PALLET_SIMULATION_QUANTITY for EUPs.
+    // We just need to set the intention for eupQuantity to be "max" and keep
+    // dinQuantity as is. The primary calculation in calculateAndSetState will use
+    // MAX_PALLET_SIMULATION_QUANTITY for EUPs.
     
     // Trigger a recalculation with current DIN quantity and a signal to maximize EUPs.
     // The `calculateAndSetState` will be called by useEffect due to state changes.
@@ -785,7 +786,7 @@ export default function HomePage() {
       isEUPStackable,
       isDINStackable,
       eupWeightPerPallet, dinWeightPerPallet,
-      eupLoadingPattern,
+      'auto',
       'DIN_FIRST', // Place DINs first, then fill EUPs
       eupStackLimit,
       dinStackLimit
@@ -795,14 +796,12 @@ export default function HomePage() {
     // dinQuantity remains the same, or if limited by fillResults, update it.
     setDinQuantity(fillResults.totalDinPalletsVisual); 
 
-
-    if (eupLoadingPattern === 'auto' && fillResults.eupLoadingPatternUsed !== 'auto' && fillResults.eupLoadingPatternUsed !== 'none' && fillResults.totalEuroPalletsVisual > 0) {
-        setEupLoadingPattern(fillResults.eupLoadingPatternUsed);
-    }
     // useEffect will then run calculateAndSetState with these updated quantities.
   };
 
   const handleFillRemainingWithDIN = () => {
+    // Keep current EUPs and fill the rest with DIN pallets using the best pattern.
+
     const currentEupQty = eupQuantity;
     let bestSimResults = null;
 
@@ -818,7 +817,7 @@ export default function HomePage() {
         const simResults = calculateLoadingLogic(
             selectedTruck, currentEupQty, d,
             isEUPStackable, isDINStackable, eupWeightPerPallet, dinWeightPerPallet,
-            eupLoadingPattern, 'DIN_FIRST',
+            'auto', 'DIN_FIRST',
             eupStackLimit,
             dinStackLimit
         );
@@ -833,25 +832,17 @@ export default function HomePage() {
         setDinQuantity(bestSimResults.totalDinPalletsVisual); 
         setEupQuantity(currentEupQty); // Preserve the EUP quantity
 
-        if ((currentEupQty > 0 || bestSimResults.totalEuroPalletsVisual > 0) && eupLoadingPattern === 'auto' && 
-            bestSimResults.eupLoadingPatternUsed !== 'auto' && bestSimResults.eupLoadingPatternUsed !== 'none') {
-            setEupLoadingPattern(bestSimResults.eupLoadingPatternUsed);
-        }
     } else {
         const eupFirstSimResults = calculateLoadingLogic(
           selectedTruck, currentEupQty, MAX_PALLET_SIMULATION_QUANTITY,
           isEUPStackable, isDINStackable, eupWeightPerPallet, dinWeightPerPallet,
-          eupLoadingPattern, 'EUP_FIRST',
+          'auto', 'EUP_FIRST',
           eupStackLimit,
           dinStackLimit
         );
         setDinQuantity(eupFirstSimResults.totalDinPalletsVisual);
         setEupQuantity(eupFirstSimResults.totalEuroPalletsVisual); 
 
-         if (eupFirstSimResults.totalEuroPalletsVisual > 0 && eupLoadingPattern === 'auto' && 
-             eupFirstSimResults.eupLoadingPatternUsed !== 'auto' && eupFirstSimResults.eupLoadingPatternUsed !== 'none') {
-            setEupLoadingPattern(eupFirstSimResults.eupLoadingPatternUsed);
-        }
     }
     // useEffect will run calculateAndSetState with these updated quantities.
   };
